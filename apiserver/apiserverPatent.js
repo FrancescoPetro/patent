@@ -28,7 +28,7 @@ app.get('/api/recordpatent', async function (req, res) {
         const gateway = new Gateway();
         await gateway.connect(ccp, { wallet, identity: 'user1', discovery: { enabled: false } });
         // Get the network (channel) our contract is deployed to.
-        const network = await gateway.getNetwork('mychannel');
+        const network = await gateway.getNetwork('mychannel1');
         // Get the contract from the network.
         const contract = network.getContract('patent-chaincode');
         // Evaluate the specified transaction.
@@ -62,7 +62,7 @@ app.get('/api/validatepatent/:patent_name', async function (req, res) {
         const gateway = new Gateway();
         await gateway.connect(ccp, { wallet, identity: 'user1', discovery: { enabled: false } });
         // Get the network (channel) our contract is deployed to.
-        const network = await gateway.getNetwork('mychannel');
+        const network = await gateway.getNetwork('mychannel1');
         // Get the contract from the network.
         const contract = network.getContract('patent-chaincode');
         // Evaluate the specified transaction.
@@ -96,7 +96,7 @@ app.get('/api/queryallpatents', async function (req, res) {
         const gateway = new Gateway();
         await gateway.connect(ccp, { wallet, identity: 'user1', discovery: { enabled: true, asLocalhost: true } });
         // Get the network (channel) our contract is deployed to.
-        const network = await gateway.getNetwork('mychannel');
+        const network = await gateway.getNetwork('mychannel1');
         // Get the contract from the network.
         const contract = network.getContract('patent');
         // Submit the specified transaction.

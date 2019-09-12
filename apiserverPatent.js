@@ -32,7 +32,7 @@ let network = require('./network.js');
 app.get('/api/queryall', async (req, res) => {
 
     try{
-        let networkObj = await network.connectToNetwork("validator");
+        let networkObj = await network.connectToNetwork("alfredo");
         let response = await network.invoke(networkObj, true, 'queryAllPatents', '');
         //let response = await invoke.main();
         var date = new Date();
@@ -58,7 +58,7 @@ app.get('/api/queryall', async (req, res) => {
 app.get('/api/query/:patent_id', async (req, res) => {
 
     try{
-        let networkObj = await network.connectToNetwork("validator");
+        let networkObj = await network.connectToNetwork("alfredo");
         let response = await network.queryPatent(networkObj, 'queryPatent',req.params.patent_id);
 
         console.log(req.params.patent_id);
@@ -79,25 +79,15 @@ app.get('/api/query/:patent_id', async (req, res) => {
 //recordPatent
 app.post('/api/recordpatent', async function (req, res) {
     try{
-        let networkObj = await network.connectToNetwork("validator");
-        
-        /*req.body = JSON.stringify(req.body);
-        console.log('req.body');
-        console.log(req.body);
-        let args = [req.body];*/
+        let networkObj = await network.connectToNetwork("alfredo");
         
         console.log('req.body', req.body);
 
         let inventor=req.body.name;
         let company=req.body.company;
         let description = req.body.description;
-
-        // let inventor="giovanni";
-        // let company="company";
-        // let description = "description";
             
         let response = await network.recordPatent(networkObj, inventor, description, company);
-        //let response = await invoke.main();
         
         var date = new Date();
         var current_hour = date.getHours();
@@ -121,15 +111,61 @@ app.post('/api/recordpatent', async function (req, res) {
 });
 
 //validatepatent
-app.get('/api/validatepatent/:patent_name', async function (req, res) {
+
+app.put('/api/validatepatent', async function (req, res) {
     try{
-        let networkObj = await network.connectToNetwork("validator");
-        let args=[JSON.stringify(req.params.patent_name)];
-        let response = await network.invoke(networkObj, false, 'validatePatent', args);
-        //let response = await invoke.main();
+        let networkObj = await network.connectToNetwork("alfredo");
+        console.log('req.body', req.body);
+
+        console.log('req.body.Record',req.body.Record);
+
+        let inventor=req.body.Record.inventor;
+        let company=req.body.Record.company;
+        let description = req.body.Record.description;
+
+        let response = await network.validatePatent(networkObj, inventor, description, company);
+        
+        var date = new Date();
+        var current_hour = date.getHours();
+        if(current_hour<10) current_hour="0"+current_hour;
+        var current_mins = date.getMinutes();
+        if(current_mins<10) current_mins="0"+current_mins;
+        var current_secs = date.getSeconds();  
+        if(current_secs<10) current_secs="0"+current_secs;
+
+        console.log("Time:", current_hour+":"+current_mins+":"+current_secs);
+        console.log("Client ip:",req.ip);
         res.status(200).json({ response: String(response) });
-    //let parsedResponse = await JSON.parse(response);
-    //res.send(parsedResponse);
+    
+    } catch (error) {
+        console.error(`Failed to evaluate transaction: ${error}`);
+        res.status(500).json({ error: error });
+        process.exit(1);
+    }
+});
+
+app.post('/api/registeruser', async function (req, res) {
+    try{
+        var date = new Date();
+        var current_hour = date.getHours();
+        if(current_hour<10) {current_hour="0"+current_hour;}
+        var current_mins = date.getMinutes();
+        if(current_mins<10) {current_mins="0"+current_mins;}
+        var current_secs = date.getSeconds();  
+        if(current_secs<10) {current_secs="0"+current_secs;}
+
+        console.log("Time:", current_hour+":"+current_mins+":"+current_secs);
+        console.log("Client ip:",req.ip);
+        
+        console.log('req.body', req.body);
+
+        let name=req.body.name;
+        let password=req.body.password;
+            
+        let response = await network.registerUser(name,password);
+        //let response = await invoke.main();
+        
+        res.status(200).json({ response: String(response) });
     
     } catch (error) {
         console.error(`Failed to evaluate transaction: ${error}`);

@@ -36,8 +36,6 @@ Orderer: &OrdererDefaults
     OrdererType: kafka
     Addresses:
         - orderer0.example.com:7050
-        - orderer1.example.com:7050
-        - orderer2.example.com:7050
     BatchTimeout: 2s
     BatchSize:
         MaxMessageCount: 10
