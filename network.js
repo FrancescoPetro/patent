@@ -80,6 +80,75 @@ exports.connectToNetwork = async function (userName) {
   }
 };
 
+exports.loginUser = async function (userName) {
+
+  const gateway = new Gateway();
+
+  try {
+
+    const usersWalletPath = path.join(process.cwd(), 'wallet/users');
+    const usersWallet = new FileSystemWallet(usersWalletPath);
+    console.log(`Users wallet path: ${usersWalletPath}`);
+    
+    console.log('userName: ');
+    console.log(userName);
+
+    const userExists = await usersWallet.exists(userName);
+
+    if (userExists) {
+      console.log('An identity for the user ' + userName + ' exists in the wallet');
+      return "user";
+    }
+
+    const validatorsWalletPath = path.join(process.cwd(), 'wallet/validators');
+    const validatorsWallet = new FileSystemWallet(validatorsWalletPath);
+    console.log(`Wallet path: ${validatorsWalletPath}`);
+
+    const validatorsExists =  await validatorsWallet.exists(userName);
+
+    if (validatorsExists) {
+      console.log('An identity for the validator ' + userName + ' exists in the wallet');
+      return "validator";
+    }
+
+    console.log('An identity for ' + userName + ' doesn\'t exists in the wallet');
+    let response = {};
+    response.error = 'An identity for ' + userName + ' doesn\'t exist in the wallet';
+    return response;
+
+
+//     console.log('before gateway.connect: ');
+
+//     //await gateway.connect(ccp, { wallet, identity: userName, discovery: true});
+//     await gateway.connect(ccpPath, { wallet, identity: userName, discovery: { enabled: true, asLocalhost: true } });
+//     // Connect to our local fabric
+//     const network = await gateway.getNetwork('mychannel1');
+
+//     console.log('Connected to mychannel1. ');
+//     // Get the contract we have installed on the peer
+//     const contract = await network.getContract('patent');
+
+
+//     let networkObj = {
+//       contract: contract,
+//       network: network,
+//       gateway: gateway
+//     };
+
+//     return networkObj;
+
+  } catch (error) {
+    console.log(`Error processing transaction. ${error}`);
+    console.log(error.stack);
+    let response = {};
+    response.error = error;
+    return response;
+  } finally {
+    console.log('Done connecting to network.');
+    // gateway.disconnect();
+  }
+};
+
 exports.recordPatent = async function (networkObj, inventor, company, description) {
   try {
     console.log('inside recordPatent');
@@ -132,7 +201,6 @@ exports.validatePatent = async function (networkObj, inventor, company, descript
   }
 };
 
-
 exports.queryPatent = async function (networkObj, func, args) {
   try {
     let response = await networkObj.contract.evaluateTransaction(func, args);
@@ -149,7 +217,43 @@ exports.queryPatent = async function (networkObj, func, args) {
   }
 }
 
-exports.registerUser = async function (user, password) {
+// exports.loginUser = async function (user) {
+//   try {
+
+//     // Create a new file system based wallet for managing identities.
+//     const walletPath = path.join(process.cwd(), 'wallet');
+//     const wallet = new FileSystemWallet(walletPath);
+//     console.log(`Wallet path: ${walletPath}`);
+
+//     // Check to see if we've already enrolled the user.
+//     const userExists = await wallet.exists(user);
+//     if (!userExists) {
+//       console.log('An identity for the user "'+user+'" doesn\'t exists in the wallet');
+//       return ("BadUsername");
+//     }
+
+//     // Create a new gateway for connecting to our peer node.
+//     const gateway = new Gateway();
+//     await gateway.connect(ccpPath, { wallet, identity: user, discovery: { enabled: true, asLocalhost: true } });
+    
+//     // Get the CA client object from the gateway for interacting with the CA.
+//     const ca = gateway.getClient().getCertificateAuthority();
+//     const userIdentity = gateway.getCurrentIdentity();
+
+//     //console.log(userIdentity);
+
+//     console.log('Successfully logged as user "'+user+'"');
+
+//     return("OK");
+
+//   } catch (error) {
+//     console.error('Failed to login user "'+user+'":',error);
+//     process.exit(1);
+//   }
+// }
+
+exports.registerUser = async function (username){
+  //,id, name, surname) {
   try {
 
     // Create a new file system based wallet for managing identities.
@@ -157,10 +261,14 @@ exports.registerUser = async function (user, password) {
     const wallet = new FileSystemWallet(walletPath);
     console.log(`Wallet path: ${walletPath}`);
 
+    const usersWalletPath = path.join(process.cwd(), 'wallet/users');
+    const usersWallet = new FileSystemWallet(usersWalletPath);
+    console.log(`Wallet path: ${usersWalletPath}`);
+
     // Check to see if we've already enrolled the user.
-    const userExists = await wallet.exists(user);
+    const userExists = await usersWallet.exists(username);
     if (userExists) {
-      console.log('An identity for the user "'+user+'" already exists in the wallet');
+      console.log('An identity for the user "'+username+'" already exists in the wallet');
       return;
     }
 
@@ -181,16 +289,34 @@ exports.registerUser = async function (user, password) {
     const adminIdentity = gateway.getCurrentIdentity();
 
     // Register the user, enroll the user, and import the new identity into the wallet.
-    const secret = await ca.register({ affiliation: 'org1', enrollmentID: user, role: 'client' }, adminIdentity);
-    console.log("secret:",secret);
-
-    const enrollment = await ca.enroll({ enrollmentID: user, enrollmentSecret: secret });
+    const secret = await ca.register({ affiliation: 'org1', enrollmentID: username, role: 'client' }, adminIdentity);
+    //console.log("secret:",secret);
+    
+    const enrollment = await ca.enroll({ enrollmentID: username, enrollmentSecret: secret });
+    //console.log("enrollment:".enrollment.certificate);
     const userIdentity = X509WalletMixin.createIdentity('Org1MSP', enrollment.certificate, enrollment.key.toBytes());
-    await wallet.import(user, userIdentity);
-    console.log('Successfully registered and enrolled admin user "'+user+'" and imported it into the wallet');
+    console.log(userIdentity);
+    await usersWallet.import(username, userIdentity);
+    console.log('Successfully registered and enrolled user "'+username+'" and imported it into the wallet');
+
+    // const network = await gateway.getNetwork('mychannel1');
+
+    // console.log('Connected to mychannel1. ');
+    // // Get the contract we have installed on the peer
+    // const contract = await network.getContract('patent');
+
+    // let response = await contract.submitTransaction('registerUser', id, username, name, lastname);
+    // console.log('after submit');
+
+    // console.log(response);
+    // console.log(`Transaction recordPatent has been submitted`);
+
+    //await networkObj.gateway.disconnect();
+
+    return response;
 
   } catch (error) {
-    console.error('Failed to register user "'+user+'":',error);
+    console.error('Failed to register user "'+username+'":',error);
     process.exit(1);
   }
 }

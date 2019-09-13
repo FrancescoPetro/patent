@@ -159,13 +159,44 @@ app.post('/api/registeruser', async function (req, res) {
         
         console.log('req.body', req.body);
 
-        let name=req.body.name;
-        let password=req.body.password;
+        let id=req.body.id;
             
-        let response = await network.registerUser(name,password);
+        let response = await network.registerUser(id);
         //let response = await invoke.main();
         
         res.status(200).json({ response: String(response) });
+    
+    } catch (error) {
+        console.error(`Failed to evaluate transaction: ${error}`);
+        res.status(500).json({ error: error });
+        process.exit(1);
+    }
+});
+
+app.post('/api/loginuser', async function (req, res) {
+    try{
+        
+        console.log('req.body', req.body);
+
+        let id=req.body.id;
+
+        let response = await network.loginUser(id);
+        //let response = await network.networkConnection(id);
+        
+        var date = new Date();
+        var current_hour = date.getHours();
+        if(current_hour<10) current_hour="0"+current_hour;
+        var current_mins = date.getMinutes();
+        if(current_mins<10) current_mins="0"+current_mins;
+        var current_secs = date.getSeconds();  
+        if(current_secs<10) current_secs="0"+current_secs;
+
+        console.log("Time:", current_hour+":"+current_mins+":"+current_secs);
+        console.log("Client ip:",req.ip);
+
+        res.status(200).json({ response: String(response) });
+    //let parsedResponse = await JSON.parse(response);
+    //res.send(parsedResponse);
     
     } catch (error) {
         console.error(`Failed to evaluate transaction: ${error}`);

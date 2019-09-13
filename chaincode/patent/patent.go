@@ -50,6 +50,12 @@ type Patent struct {
 	Validation  string `json:"validation"`
 }
 
+type User struct {
+	Username   	string `json:"username"`
+	Name   	    string `json:"name"`
+	Surname   	string `json:"surname"`
+}
+
 /*
  * The Init method is called when the Smart Contract "fabcar" is instantiated by the blockchain network
  * Best practice is to have any Ledger initialization in separate function -- see initLedger()
@@ -192,6 +198,36 @@ func (s *SmartContract) validatePatent(APIstub shim.ChaincodeStubInterface, args
 
 	return shim.Success(nil)
 }
+
+// func (s *SmartContract) registerUser(APIstub shim.ChaincodeStubInterface, args []string) sc.Response {
+
+// 	/*if len(args) != 5 {
+// 		return shim.Error("Incorrect number of arguments. Expecting 5")
+// 	}
+
+// 	fmt.Println(args[0]);
+
+// 	var arg=args[0];*/
+
+// 	var user = Username{Username: args[1], Name: args[1], Surname: args[2]}
+
+// 	userAsBytes, _ := json.Marshal(user)
+// 	APIstub.PutState(args[0], userAsBytes)
+	
+// 	fmt.Println(args[0]);
+
+// 	return shim.Success(nil);
+// }
+
+// func (s *SmartContract) getUser(APIstub shim.ChaincodeStubInterface, args []string) sc.Response {
+
+// 	if len(args) != 1 {
+// 		return shim.Error("Incorrect number of arguments. Expecting 1")
+// 	}
+
+// 	userAsBytes, _ := APIstub.GetState(args[0])
+// 	return shim.Success(userAsBytes)
+// }
 
 // The main function is only relevant in unit test mode. Only included here for completeness.
 func main() {
