@@ -50,7 +50,7 @@ app.get('/api/queryall', async (req, res) => {
     } catch (error) {
         console.error(`Failed to evaluate transaction: ${error}`);
         res.status(500).json({ error: error });
-        process.exit(1);
+        //process.exit(1);
     }
   
 });
@@ -71,7 +71,7 @@ app.get('/api/query/:patent_id', async (req, res) => {
     } catch (error) {
         console.error(`Failed to evaluate transaction: ${error}`);
         res.status(500).json({ error: error });
-        process.exit(1);
+        //process.exit(1);
     }
   
 });
@@ -106,7 +106,7 @@ app.post('/api/recordpatent', async function (req, res) {
     } catch (error) {
         console.error(`Failed to evaluate transaction: ${error}`);
         res.status(500).json({ error: error });
-        process.exit(1);
+        //process.exit(1);
     }
 });
 
@@ -140,7 +140,7 @@ app.put('/api/validatepatent', async function (req, res) {
     } catch (error) {
         console.error(`Failed to evaluate transaction: ${error}`);
         res.status(500).json({ error: error });
-        process.exit(1);
+        //process.exit(1);
     }
 });
 
@@ -159,17 +159,24 @@ app.post('/api/registeruser', async function (req, res) {
         
         console.log('req.body', req.body);
 
-        let id=req.body.id;
+        let id=req.body.username;
+        let role=req.body.role;
+        console.log("id",id);
             
-        let response = await network.registerUser(id);
+        let response = await network.registerUser(id,role);
         //let response = await invoke.main();
         
-        res.status(200).json({ response: String(response) });
+        if(response=="AlreadyExists"){
+            res.status(500).json({response: "AlreadyExists"})
+        }
+        else{
+            res.status(200).json({ response: String(response) });
+        }
     
     } catch (error) {
         console.error(`Failed to evaluate transaction: ${error}`);
         res.status(500).json({ error: error });
-        process.exit(1);
+        //process.exit(1);
     }
 });
 
@@ -178,7 +185,7 @@ app.post('/api/loginuser', async function (req, res) {
         
         console.log('req.body', req.body);
 
-        let id=req.body.id;
+        let id=req.body.username;
 
         let response = await network.loginUser(id);
         //let response = await network.networkConnection(id);
@@ -201,7 +208,7 @@ app.post('/api/loginuser', async function (req, res) {
     } catch (error) {
         console.error(`Failed to evaluate transaction: ${error}`);
         res.status(500).json({ error: error });
-        process.exit(1);
+        //process.exit(1);
     }
 });
 
