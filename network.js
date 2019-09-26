@@ -23,6 +23,124 @@ const ccp = JSON.parse(ccpJSON);
 
 const util = require('util');
 
+exports.connectValidatorToNetwork = async function (userName) {
+
+  const gateway = new Gateway();
+
+  console.log("Connect Validator To Network");
+
+  try {
+    const walletPath = path.join(process.cwd(), 'wallet/validators');
+    const wallet = new FileSystemWallet(walletPath);
+    console.log(`Wallet path: ${walletPath}`);
+    console.log('userName: ');
+    console.log(userName);
+
+    /*console.log('wallet: ');
+    console.log(util.inspect(wallet));
+    console.log('ccp: ');
+    console.log(util.inspect(ccp));*/
+    // userName = 'V123412';
+    const userExists = await wallet.exists(userName);
+    if (!userExists) {
+      console.log('An identity for the validator ' + userName + ' does not exist in the wallet');
+      console.log('Run the registerUser.js application before retrying');
+      let response = {};
+      response.error = 'An identity for the validator ' + userName + ' does not exist in the wallet. Register ' + userName + ' first';
+      return response;
+    }
+
+    console.log('before gateway.connect: ');
+
+    //await gateway.connect(ccp, { wallet, identity: userName, discovery: true});
+    await gateway.connect(ccpPath, { wallet, identity: userName, discovery: { enabled: true, asLocalhost: true } });
+    // Connect to our local fabric
+    const network = await gateway.getNetwork('mychannel1');
+
+    console.log('Connected to mychannel1. ');
+    // Get the contract we have installed on the peer
+    const contract = await network.getContract('patent');
+
+
+    let networkObj = {
+      contract: contract,
+      network: network,
+      gateway: gateway
+    };
+
+    return networkObj;
+
+  } catch (error) {
+    console.log(`Error processing transaction. ${error}`);
+    console.log(error.stack);
+    let response = {};
+    response.error = error;
+    return response;
+  } finally {
+    console.log('Done connecting to network.');
+    // gateway.disconnect();
+  }
+}; 
+
+exports.connectUserToNetwork = async function (userName) {
+
+  const gateway = new Gateway();
+
+  console.log("Connect User To Network");
+
+  try {
+    const walletPath = path.join(process.cwd(), 'wallet/users');
+    const wallet = new FileSystemWallet(walletPath);
+    console.log(`Wallet path: ${walletPath}`);
+    console.log('userName: ');
+    console.log(userName);
+
+    /*console.log('wallet: ');
+    console.log(util.inspect(wallet));
+    console.log('ccp: ');
+    console.log(util.inspect(ccp));*/
+    // userName = 'V123412';
+    const userExists = await wallet.exists(userName);
+    if (!userExists) {
+      console.log('An identity for the user ' + userName + ' does not exist in the wallet');
+      console.log('Run the registerUser.js application before retrying');
+      let response = {};
+      response.error = 'An identity for the user ' + userName + ' does not exist in the wallet. Register ' + userName + ' first';
+      return response;
+    }
+
+    console.log('before gateway.connect: ');
+
+    //await gateway.connect(ccp, { wallet, identity: userName, discovery: true});
+    await gateway.connect(ccpPath, { wallet, identity: userName, discovery: { enabled: true, asLocalhost: true } });
+    // Connect to our local fabric
+    const network = await gateway.getNetwork('mychannel1');
+
+    console.log('Connected to mychannel1. ');
+    // Get the contract we have installed on the peer
+    const contract = await network.getContract('patent');
+
+
+    let networkObj = {
+      contract: contract,
+      network: network,
+      gateway: gateway
+    };
+
+    return networkObj;
+
+  } catch (error) {
+    console.log(`Error processing transaction. ${error}`);
+    console.log(error.stack);
+    let response = {};
+    response.error = error;
+    return response;
+  } finally {
+    console.log('Done connecting to network.');
+    // gateway.disconnect();
+  }
+}; 
+
 exports.connectToNetwork = async function (userName) {
 
   const gateway = new Gateway();
