@@ -1,5 +1,12 @@
 var express = require('express');
 var bodyParser = require('body-parser');
+var Blob = require('node-blob');
+var fetch =  require('node-fetch');
+var FileSaver =require('file-saver');
+
+// var crypto = require('crypto');
+// var shasum = crypto.createHash('md5');
+
 var cors = require('cors')
 // var originsWhitelist = [
 //     'http://localhost:4200',      //this is my front-end url for development
@@ -32,6 +39,13 @@ let network = require('./network.js');
 app.get('/api/queryall', async (req, res) => {
 
     try {
+
+        //console.log("USERNAME:",req.body.username)
+
+        console.log("IDNUM", network.getIdNum());
+        network.incIdNum();
+        console.log("IDNUM++", network.getIdNum());
+
         let networkObj = await network.connectToNetwork("alfredo");
         let response = await network.invoke(networkObj, true, 'queryAllPatents', '');
         //let response = await invoke.main();
@@ -56,23 +70,36 @@ app.get('/api/queryall', async (req, res) => {
 
 });
 
-app.get('/api/query/:patent_id', async (req, res) => {
+app.get('/api/hash/:stringprova', async (req, res) => {
 
     try {
-        let networkObj = await network.connectToNetwork("alfredo");
-        let response = await network.queryPatent(networkObj, 'queryPatent', req.params.patent_id);
+        let data = req.params.stringprova;
 
-        console.log(req.params.patent_id);
+        let result = require('crypto').createHash('md5').update(data, 'utf8').digest('hex');
+        console.log(result);
+        let invokepath = path.resolve(__dirname, 'invoke.js');
+        let str = fs.readFileSync(invokepath, 'base64');
 
-        //let response = await invoke.main();
-        res.status(200).json({ response: String(response) });
-        //let parsedResponse = await JSON.parse(response);
-        //res.send(parsedResponse);
+        console.log(str);
+
+        let blob = new Blob([str], { type: 'application/json' });
+        fetch("data:application/json;base64," + str)
+            .then(function (resp) { return resp.blob() })
+            .then(function (blob) {
+                FileSaver.saveAs(blob, 'foo.json')
+            });
+
+        // let blobPath = path.resolve(__dirname, 'deployment/foo.js');
+
+        // FileSaver.saveAs(blob,blobPath);
+        console.log(blob);
+
+        res.status(200).json({ response: "OK", result });
+
 
     } catch (error) {
         console.error(`Failed to evaluate transaction: ${error}`);
         res.status(500).json({ error: error });
-        //process.exit(1);
     }
 
 });
@@ -142,11 +169,11 @@ app.put('/api/validatepatent', async function (req, res) {
 
             console.log('req.body.Record', req.body.Record);
 
-            let inventor = req.body.Record.inventor;
+            let name = req.body.Record.inventor;
             let company = req.body.Record.company;
             let description = req.body.Record.description;
 
-            let response = await network.validatePatent(networkObj, inventor, description, company);
+            let response = await network.validatePatent(networkObj, name, description, company);
 
             var date = new Date();
             var current_hour = date.getHours();

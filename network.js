@@ -23,6 +23,20 @@ const ccp = JSON.parse(ccpJSON);
 
 const util = require('util');
 
+var idNum=0;
+
+exports.incIdNum = async function () {
+  idNum++;
+}
+
+exports.getIdNum =  async function(){
+  return idNum;
+}
+
+exports.setIdNum =  async function(idNumber){
+  idNum=idNumber;
+}
+
 exports.connectValidatorToNetwork = async function (userName) {
 
   const gateway = new Gateway();
@@ -116,6 +130,25 @@ exports.connectUserToNetwork = async function (userName) {
     // Connect to our local fabric
     const network = await gateway.getNetwork('mychannel1');
 
+    // await network.addBlockListener('block-listener', (err, block) => {
+    //   if (err) {
+    //     console.log(err);
+    //     return;
+    //   }
+
+    //   console.log('*************** start block header **********************')
+    //   console.log(util.inspect(block.header, {showHidden: false, depth: 5}))
+    //   console.log('*************** end block header **********************')
+    //   console.log('*************** start block data **********************')
+    //   let data = block.data.data[0];
+    //   console.log(util.inspect(data, {showHidden: false, depth: 5}))
+    //   console.log('*************** end block data **********************')
+    //   console.log('*************** start block metadata ****************')
+    //   console.log(util.inspect(block.metadata, {showHidden: false, depth: 5}))
+    //   console.log('*************** end block metadata ****************')
+
+    // });
+
     console.log('Connected to mychannel1. ');
     // Get the contract we have installed on the peer
     const contract = await network.getContract('patent');
@@ -173,10 +206,28 @@ exports.connectToNetwork = async function (userName) {
     // Connect to our local fabric
     const network = await gateway.getNetwork('mychannel1');
 
+    // await network.addBlockListener('block-listener', (err, block) => {
+    //   if (err) {
+    //     console.log(err);
+    //     return;
+    //   }
+
+    //   console.log('*************** start block header **********************')
+    //   console.log(util.inspect(block.header, {showHidden: false, depth: 5}))
+    //   console.log('*************** end block header **********************')
+    //   console.log('*************** start block data **********************')
+    //   let data = block.data.data[0];
+    //   console.log(util.inspect(data, {showHidden: false, depth: 5}))
+    //   console.log('*************** end block data **********************')
+    //   console.log('*************** start block metadata ****************')
+    //   console.log(util.inspect(block.metadata, {showHidden: false, depth: 5}))
+    //   console.log('*************** end block metadata ****************')
+
+    // });
+
     console.log('Connected to mychannel1. ');
     // Get the contract we have installed on the peer
-    const contract = await network.getContract('patent');
-
+    const contract = await network.getContract('patent');    
 
     let networkObj = {
       contract: contract,
@@ -229,16 +280,40 @@ exports.loginUser = async function (userName) {
   }
 };
 
-exports.recordPatent = async function (networkObj, inventor, company, description) {
+exports.recordPatent = async function (networkObj, name, company, description) {
   try {
     console.log('inside recordPatent');
 
     console.log('before submit');
     //console.log(util.inspect(networkObj));
+  
+    let id = name + "_" + company + "_" + description;
+    console.log("ID BEFORE:",id);
 
-    let id = inventor + "_" + company + "_" + description;
+    console.log("ID AFTER:",id.toLowerCase());
+       
+    const transaction = await networkObj.contract.createTransaction('recordPatent');
 
-    let response = await networkObj.contract.submitTransaction('recordPatent', id, inventor, company, description);
+    // await transaction.addCommitListener((err, txId, status, blockHeight) => {
+    //   if (err) {
+    //     console.log(err)
+    //     return
+    //   }
+    //   if (status === 'VALID') {
+    //     console.log('transaction committed');
+    //     console.log(util.inspect(txId, {showHidden: false, depth: 5}))
+    //     console.log(util.inspect(status, {showHidden: false, depth: 5}))
+    //     console.log(util.inspect(blockHeight, {showHidden: false, depth: 5}))
+    //     console.log('transaction committed end');
+    //   } else {
+    //     console.log('err transaction failed');
+    //     console.log(status);
+    //   }
+    // });
+
+    const response = await transaction.submit(id.toLowerCase(), name, company, description);
+
+    //const response = await networkObj.contract.submitTransaction('recordPatent', id.toLowerCase(), name, company, description);
     console.log('after submit');
 
     console.log(response);
@@ -264,7 +339,7 @@ exports.validatePatent = async function (networkObj, inventor, company, descript
 
     let id = inventor + "_" + company + "_" + description;
 
-    let response = await networkObj.contract.submitTransaction('validatePatent', id);
+    let response = await networkObj.contract.submitTransaction('validatePatent', id.toLocaleLowerCase());
     console.log('after submit');
 
     console.log(response);
