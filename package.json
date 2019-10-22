@@ -21,6 +21,7 @@
         "fabric-ca-client": "~1.4.0",
         "fabric-network": "~1.4.0",
         "file-saver": "^2.0.2",
+        "firebase": "^7.2.0",
         "node-blob": "0.0.2",
         "node-fetch": "^2.6.0"
     },

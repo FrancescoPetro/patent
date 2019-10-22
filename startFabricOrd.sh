@@ -11,7 +11,7 @@ docker-compose -f deployment/docker-compose-cli0.yml up -d
 #docker exec -e "CORE_PEER_LOCALMSPID=Org1MSP" -e "CORE_PEER_MSPCONFIGPATH=/var/hyperledger/users/Admin@org1.example.com/msp" peer0.org1.example.com peer channel create -o orderer0.example.com:7050 -c mychannel1 -f /var/hyperledger/configs/channel.tx
 
 #JOIN CHANNEL
-#docker exec -e "CORE_PEER_LOCALMSPID=Org1MSP" -e "CORE_PEER_MSPCONFIGPATH=/var/hyperledger/users/Admin@org1.example.com/msp" peer0.org1.example.com peer channel join -b mychannel.block
+#docker exec -e "CORE_PEER_LOCALMSPID=Org1MSP" -e "CORE_PEER_MSPCONFIGPATH=/var/hyperledger/users/Admin@org1.example.com/msp" peer0.org1.example.com peer channel join -b mychannel1.block
 
 #INSTALL CHAINCODE
 #docker exec -it cli peer chaincode install -n patent -p github.com/chaincode/patent -v v2.3
@@ -19,42 +19,5 @@ docker-compose -f deployment/docker-compose-cli0.yml up -d
 #INSTANTIATE CHAINCODE
 #docker exec -e "CORE_PEER_LOCALMSPID=Org1MSP" -e "CORE_PEER_MSPCONFIGPATH=/var/hyperledger/users/Admin@org1.example.com/msp" -it cli peer chaincode instantiate -o orderer0.example.com:7050 -C mychannel1 -n patent github.com/chaincode/patent -v v0 -c '{"function":"initLedger","Args":[]}'
 
-# docker exec \
-# -e "CORE_PEER_LOCALMSPID=Org1MSP" \
-# -e "CORE_PEER_MSPCONFIGPATH=/var/hyperledger/users/Admin@org1.example.com/msp" \
-# peer0.org1.example.com peer \ 
-# channel create \
-# -o orderer0.example.com:7050 \
-# -c mychannel \
-# -f /var/hyperledger/configs/channel.tx
-
-# docker exec \
-# -e "CORE_PEER_LOCALMSPID=Org1MSP" \
-# -e "CORE_PEER_MSPCONFIGPATH=/var/hyperledger/users/Admin@org1.example.com/msp" \
-# peer0.org1.example.com 
-# peer channel join \
-# -b mychannel.block
-
-
-# echo "Installing smart contract on peer0.org1.example.com"
-# docker exec \
-#   cli \
-#   peer chaincode install \
-#     -n patent \
-#     -v 0 \
-#     -p github.com/chaincode/patent \
-#     -l go
-
-# echo "Instantiating smart contract on mychannel"
-# docker exec \
-#   cli \
-#   peer chaincode instantiate \
-#     -o orderer.example.com:7050 \
-#     -C mychannel \
-#     -n patent \
-#     -l go \
-#     -v 0 \
-#     -c '{"Args":[]}' \
-#     github.com/chaincode/patent
-
+#UPGRADE CHAINCODE (requires installation first)
 #docker exec -it cli peer chaincode upgrade -C mychannel1 -n patent -p github.com/chaincode/patent -v v2.3 -c '{"Args":[]}'

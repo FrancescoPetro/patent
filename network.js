@@ -20,6 +20,9 @@ const ccpPath = path.resolve(__dirname, 'deployment', 'connection-org1.json');
 const ccpJSON = fs.readFileSync(ccpPath, 'utf8');
 const ccp = JSON.parse(ccpJSON);
 
+const channel="mychannel1";
+const chaincode="patent-hash"
+
 
 const util = require('util');
 
@@ -50,11 +53,6 @@ exports.connectValidatorToNetwork = async function (userName) {
     console.log('userName: ');
     console.log(userName);
 
-    /*console.log('wallet: ');
-    console.log(util.inspect(wallet));
-    console.log('ccp: ');
-    console.log(util.inspect(ccp));*/
-    // userName = 'V123412';
     const userExists = await wallet.exists(userName);
     if (!userExists) {
       console.log('An identity for the validator ' + userName + ' does not exist in the wallet');
@@ -69,11 +67,11 @@ exports.connectValidatorToNetwork = async function (userName) {
     //await gateway.connect(ccp, { wallet, identity: userName, discovery: true});
     await gateway.connect(ccpPath, { wallet, identity: userName, discovery: { enabled: true, asLocalhost: true } });
     // Connect to our local fabric
-    const network = await gateway.getNetwork('mychannel1');
+    const network = await gateway.getNetwork(channel);
 
-    console.log('Connected to mychannel1. ');
+    console.log('Connected to',channel);
     // Get the contract we have installed on the peer
-    const contract = await network.getContract('patent');
+    const contract = await network.getContract(chaincode);
 
 
     let networkObj = {
@@ -109,11 +107,6 @@ exports.connectUserToNetwork = async function (userName) {
     console.log('userName: ');
     console.log(userName);
 
-    /*console.log('wallet: ');
-    console.log(util.inspect(wallet));
-    console.log('ccp: ');
-    console.log(util.inspect(ccp));*/
-    // userName = 'V123412';
     const userExists = await wallet.exists(userName);
     if (!userExists) {
       console.log('An identity for the user ' + userName + ' does not exist in the wallet');
@@ -128,30 +121,11 @@ exports.connectUserToNetwork = async function (userName) {
     //await gateway.connect(ccp, { wallet, identity: userName, discovery: true});
     await gateway.connect(ccpPath, { wallet, identity: userName, discovery: { enabled: true, asLocalhost: true } });
     // Connect to our local fabric
-    const network = await gateway.getNetwork('mychannel1');
+    const network = await gateway.getNetwork(channel);
 
-    // await network.addBlockListener('block-listener', (err, block) => {
-    //   if (err) {
-    //     console.log(err);
-    //     return;
-    //   }
-
-    //   console.log('*************** start block header **********************')
-    //   console.log(util.inspect(block.header, {showHidden: false, depth: 5}))
-    //   console.log('*************** end block header **********************')
-    //   console.log('*************** start block data **********************')
-    //   let data = block.data.data[0];
-    //   console.log(util.inspect(data, {showHidden: false, depth: 5}))
-    //   console.log('*************** end block data **********************')
-    //   console.log('*************** start block metadata ****************')
-    //   console.log(util.inspect(block.metadata, {showHidden: false, depth: 5}))
-    //   console.log('*************** end block metadata ****************')
-
-    // });
-
-    console.log('Connected to mychannel1. ');
+    console.log('Connected to',channel);
     // Get the contract we have installed on the peer
-    const contract = await network.getContract('patent');
+    const contract = await network.getContract(chaincode);
 
 
     let networkObj = {
@@ -185,11 +159,6 @@ exports.connectToNetwork = async function (userName) {
     console.log('userName: ');
     console.log(userName);
 
-    /*console.log('wallet: ');
-    console.log(util.inspect(wallet));
-    console.log('ccp: ');
-    console.log(util.inspect(ccp));*/
-    // userName = 'V123412';
     const userExists = await wallet.exists(userName);
     if (!userExists) {
       console.log('An identity for the user ' + userName + ' does not exist in the wallet');
@@ -204,7 +173,7 @@ exports.connectToNetwork = async function (userName) {
     //await gateway.connect(ccp, { wallet, identity: userName, discovery: true});
     await gateway.connect(ccpPath, { wallet, identity: userName, discovery: { enabled: true, asLocalhost: true } });
     // Connect to our local fabric
-    const network = await gateway.getNetwork('mychannel1');
+    const network = await gateway.getNetwork(channel);
 
     // await network.addBlockListener('block-listener', (err, block) => {
     //   if (err) {
@@ -225,9 +194,57 @@ exports.connectToNetwork = async function (userName) {
 
     // });
 
-    console.log('Connected to mychannel1. ');
+    console.log('Connected to',channel);
     // Get the contract we have installed on the peer
-    const contract = await network.getContract('patent');    
+    const contract = await network.getContract(chaincode);    
+
+    let networkObj = {
+      contract: contract,
+      network: network,
+      gateway: gateway
+    };
+
+    return networkObj;
+
+  } catch (error) {
+    console.log(`Error processing transaction. ${error}`);
+    console.log(error.stack);
+    let response = {};
+    response.error = error;
+    return response;
+  } finally {
+    console.log('Done connecting to network.');
+    // gateway.disconnect();
+  }
+};
+
+exports.connect = async function (userName,role) {
+
+  const gateway = new Gateway();
+
+  try {
+    const walletPath = path.join(process.cwd(), 'wallet');
+    const wallet = new FileSystemWallet(walletPath);
+
+    const userExists = await wallet.exists(userName);
+    if (!userExists) {
+      console.log('An identity for the user ' + userName + ' does not exist in the wallet');
+      console.log('Run the registerUser.js application before retrying');
+      let response = {};
+      response.error = 'An identity for the user ' + userName + ' does not exist in the wallet. Register ' + userName + ' first';
+      return response;
+    }
+
+    console.log('before gateway.connect: ');
+
+    //await gateway.connect(ccp, { wallet, identity: userName, discovery: true});
+    await gateway.connect(ccpPath, { wallet, identity: userName, discovery: { enabled: true, asLocalhost: true } });
+    // Connect to our local fabric
+    const network = await gateway.getNetwork(channel);
+
+    console.log('Connected to',channel);
+    // Get the contract we have installed on the peer
+    const contract = await network.getContract(chaincode);    
 
     let networkObj = {
       contract: contract,
@@ -280,19 +297,19 @@ exports.loginUser = async function (userName) {
   }
 };
 
-exports.recordPatent = async function (networkObj, name, company, description) {
+exports.recordPatent = async function (networkObj,company, patentname, description, hash) {
   try {
     console.log('inside recordPatent');
 
     console.log('before submit');
     //console.log(util.inspect(networkObj));
   
-    let id = name + "_" + company + "_" + description;
-    console.log("ID BEFORE:",id);
+    let id = company + "_" + patentname + "_" + description;
+    // console.log("ID BEFORE:",id);
 
-    console.log("ID AFTER:",id.toLowerCase());
+    // console.log("ID AFTER:",id.toLowerCase());
        
-    const transaction = await networkObj.contract.createTransaction('recordPatent');
+    // const transaction = await networkObj.contract.createTransaction('recordPatent');
 
     // await transaction.addCommitListener((err, txId, status, blockHeight) => {
     //   if (err) {
@@ -311,17 +328,19 @@ exports.recordPatent = async function (networkObj, name, company, description) {
     //   }
     // });
 
-    const response = await transaction.submit(id.toLowerCase(), name, company, description);
+    // console.log("transaction created");
 
-    //const response = await networkObj.contract.submitTransaction('recordPatent', id.toLowerCase(), name, company, description);
+    // const response = await transaction.submit(id.toLowerCase(), name, company, description, hash);
+
+    const response = await networkObj.contract.submitTransaction('recordPatent', id.toLowerCase(), company, patentname, description, hash);
     console.log('after submit');
 
-    console.log(response);
+    // console.log(response);
     console.log(`Transaction recordPatent has been submitted`);
 
     await networkObj.gateway.disconnect();
 
-    return response;
+    return "RecordOK";
 
 
   } catch (error) {
@@ -330,16 +349,16 @@ exports.recordPatent = async function (networkObj, name, company, description) {
   }
 };
 
-exports.validatePatent = async function (networkObj, inventor, company, description) {
+exports.validatePatent = async function (networkObj, key) {
   try {
     console.log('inside validatePatent');
 
     console.log('before submit');
     //console.log(util.inspect(networkObj));
 
-    let id = inventor + "_" + company + "_" + description;
+    //let id =  company + "_" + patentname + "_" +description;
 
-    let response = await networkObj.contract.submitTransaction('validatePatent', id.toLocaleLowerCase());
+    let response = await networkObj.contract.submitTransaction('validatePatent', key);
     console.log('after submit');
 
     console.log(response);
@@ -347,7 +366,7 @@ exports.validatePatent = async function (networkObj, inventor, company, descript
 
     await networkObj.gateway.disconnect();
 
-    return response;
+    return "ValidationOK";
 
 
   } catch (error) {
@@ -445,6 +464,7 @@ exports.registerUser = async function (username,role){
 
   } catch (error) {
     console.error('Failed to register '+role+' "'+username+'":',error);
+    return error
     //process.exit(1);
   }
 };
